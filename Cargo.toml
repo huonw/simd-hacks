@@ -1,0 +1,15 @@
+[package]
+
+name = "simd"
+version = "0.0.1"
+authors = ["Huon Wilson <dbau.pp@gmail.com>"]
+
+repository = "https://github.com/huonw/simd"
+documentation = "http://huonw.github.io/simd/simd"
+homepage = "http://huonw.github.io/simd/simd"
+keywords = ["simd", "numerics"]
+readme = "README.md"
+license = "Apache-2.0/MIT"
+description = """
+Functionality for working with SIMD registers and instructions.
+"""

@@ -1,3 +1,7 @@
+//! Functionality for working with SIMD registers and instructions.
+//!
+//! [Source](https://github.com/huonw/simd), [crates.io](https://crates.io/crates/simd)
+
 use std::simd;
 
 pub type usize = uint;

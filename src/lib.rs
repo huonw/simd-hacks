@@ -2,25 +2,58 @@
 //!
 //! [Source](https://github.com/huonw/simd), [crates.io](https://crates.io/crates/simd)
 
-use std::simd;
+#![feature(trace_macros)]
+use std::{simd, mem};
 
-pub type usize = uint;
-
-/// A SIMD vector, storing `count()` elements of type `Item`.
-pub trait Vector {
+/// A SIMD vector, storing precisely `count()` elements of (primitive)
+/// type `Item` sequentially in memory.
+///
+/// This trait is `unsafe` because it is used inside `unsafe` code
+/// relying on the correctness of `Item` and `count()`.
+pub unsafe trait Vector: Sized + Copy {
     /// The type that this vector contains.
     type Item;
 
     /// Return the number of items in `self`.
-    fn count(&self) -> usize;
+    #[inline(always)]
+    fn count(_: Option<Self>) -> usize {
+        let vsize = mem::size_of::<Self>();
+        let esize = mem::size_of::<Self::Item>();
+        assert!(vsize % esize == 0);
+
+        vsize / esize
+    }
+}
+
+macro_rules! prim_impl {
+    ($( $ty: ident ),*) => {
+        $(
+            unsafe impl Vector for $ty {
+                type Item = $ty;
+                #[inline(always)]
+                fn count(_: Option<$ty>) -> usize { 1 }
+            }
+            )*
+    }
+}
+
+prim_impl! {
+    u8, i8,
+    u16, i16,
+    u32, i32,
+    u64, i64,
+    usize, isize,
+
+    f32, f64
 }
 
 macro_rules! vector_impl {
     ($( $main: ident, $item: ty, $count: expr; )* ) => {
         $(
-            impl Vector for simd::$main {
+            unsafe impl Vector for simd::$main {
                 type Item = $item;
-                fn count(&self) -> usize {
+                #[inline(always)]
+                fn count(_: Option<simd::$main>) -> usize {
                     $count
                 }
             }

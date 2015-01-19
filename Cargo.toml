@@ -13,3 +13,7 @@ license = "Apache-2.0/MIT"
 description = """
 Functionality for working with SIMD registers and instructions.
 """
+
+[dependencies]
+simdty = "0"
+llvmint = "0"

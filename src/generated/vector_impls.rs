@@ -37,12 +37,6 @@ unsafe impl ::Vector for ::simdty::u8x4 {
 unsafe impl ::Vector for ::simdty::i8x4 {
     type Item = i8; #[inline(always)] fn count(_: Option<Self>) -> usize { 4 }
 }
-#[cfg(all(target_pointer_width="32"))] unsafe impl ::Vector for usize {
-    type Item = usize; #[inline(always)] fn count(_: Option<Self>) -> usize { 1 }
-}
-#[cfg(all(target_pointer_width="32"))] unsafe impl ::Vector for isize {
-    type Item = isize; #[inline(always)] fn count(_: Option<Self>) -> usize { 1 }
-}
 unsafe impl ::Vector for u64 {
     type Item = u64; #[inline(always)] fn count(_: Option<Self>) -> usize { 1 }
 }
@@ -72,12 +66,6 @@ unsafe impl ::Vector for ::simdty::u8x8 {
 }
 unsafe impl ::Vector for ::simdty::i8x8 {
     type Item = i8; #[inline(always)] fn count(_: Option<Self>) -> usize { 8 }
-}
-#[cfg(all(target_pointer_width="64"))] unsafe impl ::Vector for usize {
-    type Item = usize; #[inline(always)] fn count(_: Option<Self>) -> usize { 1 }
-}
-#[cfg(all(target_pointer_width="64"))] unsafe impl ::Vector for isize {
-    type Item = isize; #[inline(always)] fn count(_: Option<Self>) -> usize { 1 }
 }
 unsafe impl ::Vector for ::simdty::u64x2 {
     type Item = u64; #[inline(always)] fn count(_: Option<Self>) -> usize { 2 }

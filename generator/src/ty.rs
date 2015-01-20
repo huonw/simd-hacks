@@ -61,6 +61,7 @@ pub fn simd_types(log_max_count: usize) -> Types {
         }
     }
 
+    /*
     for &name in ["usize", "isize"].iter() {
         for &width in [32, 64].iter() {
             let ty = Type {
@@ -80,6 +81,7 @@ pub fn simd_types(log_max_count: usize) -> Types {
             }).push(ty)
         }
     }
+     */
 
     ret
 }

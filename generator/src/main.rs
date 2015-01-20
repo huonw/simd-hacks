@@ -38,6 +38,37 @@ fn bitcast_impls(ty: &ty::Types, dst: &Path) {
     }
 }
 
+fn half_double_impls(ty: &ty::Types, dst: &Path) {
+    let mut out = File::create(&dst.join("half_double_impls.rs")).unwrap();
+    let max = *ty.by_count.keys().max().unwrap();
+    for (&count, types) in ty.by_count.iter() {
+        for ty in types.iter() {
+            if count > 1 {
+                let o = ty::Type::new(&ty.elem[..1], ty.width, ty.count / 2);
+                writeln!(&mut out, "\
+{header}
+    type Half = {out};
+    #[inline(always)] fn split(self) -> ({out}, {out}) {{ unsafe {{ ::std::mem::transmute(self) }} }}
+}}",
+                         header = src::impl_header("::HalfVector", true, ty, None),
+                         out = o.name).unwrap();
+            }
+            if count < max {
+                let o = ty::Type::new(&ty.elem[..1], ty.width, ty.count * 2);
+                writeln!(&mut out, "\
+{header}
+    type Double = {out};
+    #[inline(always)] fn merge(self, other: {in_}) -> {out} {{ unsafe {{ ::std::mem::transmute((self, other)) }} }}
+}}",
+                         header = src::impl_header("::DoubleVector", true, ty, None),
+                         in_ = ty.name,
+                         out = o.name).unwrap();
+            }
+
+        }
+    }
+}
+
 
 fn main() {
     let dst = Path::new(&os::args()[1]);
@@ -59,6 +90,6 @@ fn main() {
 
     {
         use conversions::convert_impls;
-        run!(vector_impls, bitcast_impls, convert_impls);
+        run!(vector_impls, bitcast_impls, convert_impls, half_double_impls);
     }
 }

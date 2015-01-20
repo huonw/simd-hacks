@@ -35,3 +35,19 @@ pub unsafe trait Vector: Sized + Copy {
         vsize / esize
     }
 }
+
+pub unsafe trait HalfVector: Vector {
+    type Half /*: Vector<Item = Self::Item>*/;
+
+    fn split(self) -> (Self::Half, Self::Half);
+
+    #[inline]
+    fn lower(self) -> Self::Half { self.split().0 }
+    #[inline]
+    fn upper(self) -> Self::Half { self.split().1 }
+}
+pub unsafe trait DoubleVector: Vector {
+    type Double /*: Vector<Item = Self::Item>*/;
+
+    fn merge(self, other: Self) -> Self::Double;
+}

@@ -11,6 +11,7 @@ pub struct Type {
     pub elem: String,
     pub tot_bitsize: usize,
     pub count: usize,
+    pub width: usize,
     pub cfg: Option<String>,
 }
 
@@ -25,6 +26,7 @@ impl Type {
             elem: format!("{}{}", prefix, width),
             tot_bitsize: count * width,
             count: count,
+            width: width,
             cfg: None
         }
     }

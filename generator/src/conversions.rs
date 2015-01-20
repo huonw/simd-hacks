@@ -95,7 +95,10 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-
+        2, i 32, f 64, "sse2_cvtdq2pd", DoubleInput;
+        2, f 64, i 32, "sse2_cvttpd2dq", HalveOutput;
+        2, f 32, f 64, "sse2_cvtps2pd", DoubleInput;
+        2, f 64, f 32, "sse2_cvtpd2ps", HalveOutput;
 
         4, i 32, f 32, "sse2_cvtdq2ps", None;
         4, f 32, i 32, "sse2_cvttps2dq", None;

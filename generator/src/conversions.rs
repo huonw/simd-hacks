@@ -11,20 +11,19 @@ fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]
     write!(w, "\
 #[cfg(not(any({cfg})))]
 {header}
-    #[inline(always)] fn convert(self) -> {out} {{",
+    #[inline(always)] fn convert(self) -> {out} {{ ",
            cfg = cfgs.connect(","), header = header, out = out.name).unwrap();
 
     if count == 1 {
-        writeln!(w, " self as {out} }}\n}}", out = out.name).unwrap();
-        return
+        write!(w, "self as {out}", out = out.name).unwrap();
+    } else {
+        write!(w,
+               "let (a, b) = ::HalfVector::split(self); \
+               <<{out} as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert())",
+               out = out.name).unwrap();
     }
+    writeln!(w," }}\n}}").unwrap();
 
-    write!(w, "\n        {out}(", out=out.name).unwrap();
-    for i in 0..(count) {
-        write!(w, "self.{} as {},", i, out.elem).unwrap();
-    }
-    writeln!(w,") }}
-}}").unwrap();
 }
 
 fn convert_x86(w: &mut Writer, in_: &ty::Type, out: &ty::Type, instr: &str) -> String {

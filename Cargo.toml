@@ -14,6 +14,31 @@ description = """
 Functionality for working with SIMD registers and instructions.
 """
 
+[features]
+
+default = []
+
+# avoid shimming in replacements if there's no direct instruction
+no_naive = []
+
+# various x86 feature sets
+mmx = []
+sse = ["mmx"]
+sse2 = ["sse"]
+sse3 = ["sse2"]
+ssse3 = ["sse3"]
+sse41 = ["ssse3"]
+sse42 = ["sse41"]
+avx = ["sse42"]
+avx2 = ["avx"]
+avx512 = ["avx2"]
+
+fma = []
+xop = []
+
+# ARM
+neon = []
+
 [dependencies]
 simdty = "0"
 llvmint = "0"

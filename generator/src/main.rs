@@ -4,10 +4,11 @@ use std::os;
 
 mod ty;
 mod src;
+mod conversions;
 
 fn vector_impls(ty: &ty::Types, dst: &Path) {
     let mut out = File::create(&dst.join("vector_impls.rs")).unwrap();
-    for (_width, types) in ty.iter() {
+    for (_width, types) in ty.by_bitsize.iter() {
         for ty in types.iter() {
             writeln!(&mut out, "\
 {header}
@@ -23,7 +24,7 @@ fn vector_impls(ty: &ty::Types, dst: &Path) {
 fn bitcast_impls(ty: &ty::Types, dst: &Path) {
     let mut out = File::create(&dst.join("bitcast_impls.rs")).unwrap();
 
-    for (_width, types) in ty.iter() {
+    for (_width, types) in ty.by_bitsize.iter() {
         for i in types.iter() {
             for o in types.iter() {
                 writeln!(&mut out, "\
@@ -42,7 +43,8 @@ fn main() {
     let dst = Path::new(&os::args()[1]);
 
     // 64 == 1<<6
-    let types = ty::simd_types(6);
+    let log_max_count = 6;
+    let types = ty::simd_types(log_max_count);
 
     let mut index = File::create(&dst.join("mod.rs"));
 
@@ -55,5 +57,8 @@ fn main() {
         } }
     }
 
-    run!(vector_impls, bitcast_impls);
+    {
+        use conversions::convert_impls;
+        run!(vector_impls, bitcast_impls, convert_impls);
+    }
 }

@@ -5,6 +5,7 @@
 #![feature(trace_macros)]
 
 extern crate simdty;
+extern crate llvmint;
 
 use std::mem;
 

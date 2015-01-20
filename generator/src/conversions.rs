@@ -26,21 +26,40 @@ fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]
 
 }
 
-fn convert_x86(w: &mut Writer, in_: &ty::Type, out: &ty::Type, instr: &str) -> String {
+#[derive(Copy)]
+enum Promotion {
+    None,
+    DoubleInput,
+    HalveOutput,
+}
+
+fn convert_x86(w: &mut Writer,
+               in_: &ty::Type, out: &ty::Type,
+               instr: &str, promote: Promotion) -> String {
     let name = &instr[..instr.bytes().position(|b| b == b'_').unwrap()];
     let x86_64 = match name {
-        "sse" => "target_arch = \"x86_64\",",
-        "sse2" => "target_arch = \"x86_64\",",
+        "sse" | "sse2" => "target_arch = \"x86_64\",",
         _ => ""
     };
     let cfg = format!("any({x86_64}feature=\"{name}\")", x86_64 = x86_64, name = name);
+
+    let (input, output) = match promote {
+        Promotion::None => ("", ""),
+        Promotion::DoubleInput => (".merge(::std::mem::uninitialized())", ""),
+        Promotion::HalveOutput => ("", ".lower()"),
+    };
+
+
     writeln!(w,"\
 #[cfg({cfg})]
 {header}
-    #[inline(always)] fn convert(self) -> {out} {{ unsafe {{ ::llvmint::x86::{instr}(self) }} }}
+    #[inline(always)] fn convert(self) -> {out} {{
+        (unsafe {{ ::llvmint::x86::{instr}(self{input}) }}){output}
+    }}
 }}",
              cfg = cfg,
              header = src::impl_header("::Convert", true, in_, Some(out)),
+             input = input, output = output,
              out = out.name,
              instr = instr).unwrap();
 
@@ -48,12 +67,13 @@ fn convert_x86(w: &mut Writer, in_: &ty::Type, out: &ty::Type, instr: &str) -> S
 }
 
 macro_rules! special_cases {
-    ($($count: expr, $in_: ident $iwidth: expr, $out: ident $owidth: expr, $instr: expr);*;) => {{
+    ($($count: expr, $in_: ident $iwidth: expr, $out: ident $owidth: expr,
+       $instr: expr, $promote: ident);*;) => {{
         let mut map = HashMap::new();
         $(
             map.insert((Type::new(stringify!($in_), $iwidth, $count),
                         Type::new(stringify!($out), $owidth, $count)),
-                       $instr);
+                       ($instr, Promotion::$promote));
             )*
             map
     }}
@@ -75,16 +95,18 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-        4, i 32, f 32, "sse2_cvtdq2ps";
-        4, f 32, i 32, "sse2_cvtps2dq";
 
-        4, i 32, f 64, "avx_cvtdq2_pd_256";
-        4, f 64, i 32, "avx_cvt_pd2dq_256";
-        4, f 64, f 32, "avx_cvt_pd2_ps_256";
-        4, f 32, f 64, "avx_cvt_ps2_pd_256";
 
-        8, i 32, f 32, "avx_cvtdq2_ps_256";
-        8, f 32, i 32, "avx_cvt_ps2dq_256";
+        4, i 32, f 32, "sse2_cvtdq2ps", None;
+        4, f 32, i 32, "sse2_cvttps2dq", None;
+
+        4, i 32, f 64, "avx_cvtdq2_pd_256", None;
+        4, f 64, i 32, "avx_cvtt_pd2dq_256", None;
+        4, f 64, f 32, "avx_cvt_pd2_ps_256", None;
+        4, f 32, f 64, "avx_cvt_ps2_pd_256", None;
+
+        8, i 32, f 32, "avx_cvtdq2_ps_256", None;
+        8, f 32, i 32, "avx_cvtt_ps2dq_256", None;
     };
 
     let mut cfgs = vec![];
@@ -93,8 +115,8 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
             for o in types.iter() {
                 let pair = (i.clone(), o.clone());
                 cfgs.clear();
-                if let Some(&instr) = x86_special.get(&pair) {
-                    cfgs.push(convert_x86(&mut x86, i, o, instr));
+                if let Some(&(instr, promote)) = x86_special.get(&pair) {
+                    cfgs.push(convert_x86(&mut x86, i, o, instr, promote));
                 }
 
                 if *count == 1 {

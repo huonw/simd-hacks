@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, btree_map};
 pub struct Types {
     pub by_bitsize: BTreeMap<usize, Vec<Type>>,
     pub by_count: BTreeMap<usize, Vec<Type>>,
+    pub all: Vec<Type>,
 }
 
 #[derive(Show, Eq, PartialEq, Clone, Hash)]
@@ -41,6 +42,7 @@ pub fn simd_types(log_max_count: usize) -> Types {
     let mut ret = Types {
         by_bitsize: BTreeMap::new(),
         by_count: BTreeMap::new(),
+        all: vec![],
     };
 
     for log_count in 0..log_max_count + 1 {
@@ -57,7 +59,8 @@ pub fn simd_types(log_max_count: usize) -> Types {
                     (match ret.by_count.entry(count) {
                         btree_map::Entry::Occupied(o) => o.into_mut(),
                         btree_map::Entry::Vacant(v) => v.insert(vec![])
-                    }).push(ty);
+                    }).push(ty.clone());
+                    ret.all.push(ty);
                 }
             }
         }
@@ -80,7 +83,8 @@ pub fn simd_types(log_max_count: usize) -> Types {
             (match ret.by_count.entry(1) {
                 btree_map::Entry::Occupied(o) => o.into_mut(),
                 btree_map::Entry::Vacant(v) => v.insert(vec![])
-            }).push(ty)
+            }).push(ty.clone())
+            ret.all.push(ty);
         }
     }
      */

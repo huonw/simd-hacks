@@ -113,16 +113,16 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     };
 
     let mut cfgs = vec![];
-    for (count, types) in tys.by_count.iter() {
-        for i in types.iter() {
-            for o in types.iter() {
-                let pair = (i.clone(), o.clone());
-                cfgs.clear();
-                if let Some(&(instr, promote)) = x86_special.get(&pair) {
-                    cfgs.push(convert_x86(&mut x86, i, o, instr, promote));
-                }
+    for i in tys.all.iter() {
+        for o in tys.all.iter() {
+            let pair = (i.clone(), o.clone());
+            cfgs.clear();
+            if let Some(&(instr, promote)) = x86_special.get(&pair) {
+                cfgs.push(convert_x86(&mut x86, i, o, instr, promote));
+            }
 
-                if *count == 1 {
+            if i.count == o.count {
+                if i.count == 1 {
                     convert_naive(&mut out, i, o, &cfgs[]);
                 } else {
                     convert_naive(&mut naive, i, o, &cfgs[]);

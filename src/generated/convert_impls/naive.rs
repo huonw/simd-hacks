@@ -275,7 +275,7 @@ unsafe impl ::Convert<::simdty::i64x2> for ::simdty::i32x2 {
 unsafe impl ::Convert<::simdty::f32x2> for ::simdty::i32x2 {
     #[inline(always)] fn convert(self) -> ::simdty::f32x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::f32x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
-#[cfg(not(any()))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse2"))))]
 unsafe impl ::Convert<::simdty::f64x2> for ::simdty::i32x2 {
     #[inline(always)] fn convert(self) -> ::simdty::f64x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::f64x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
@@ -355,7 +355,7 @@ unsafe impl ::Convert<::simdty::i64x2> for ::simdty::f32x2 {
 unsafe impl ::Convert<::simdty::f32x2> for ::simdty::f32x2 {
     #[inline(always)] fn convert(self) -> ::simdty::f32x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::f32x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
-#[cfg(not(any()))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse2"))))]
 unsafe impl ::Convert<::simdty::f64x2> for ::simdty::f32x2 {
     #[inline(always)] fn convert(self) -> ::simdty::f64x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::f64x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
@@ -383,7 +383,7 @@ unsafe impl ::Convert<::simdty::i8x2> for ::simdty::f64x2 {
 unsafe impl ::Convert<::simdty::i16x2> for ::simdty::f64x2 {
     #[inline(always)] fn convert(self) -> ::simdty::i16x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::i16x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
-#[cfg(not(any()))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse2"))))]
 unsafe impl ::Convert<::simdty::i32x2> for ::simdty::f64x2 {
     #[inline(always)] fn convert(self) -> ::simdty::i32x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::i32x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
@@ -391,7 +391,7 @@ unsafe impl ::Convert<::simdty::i32x2> for ::simdty::f64x2 {
 unsafe impl ::Convert<::simdty::i64x2> for ::simdty::f64x2 {
     #[inline(always)] fn convert(self) -> ::simdty::i64x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::i64x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }
-#[cfg(not(any()))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse2"))))]
 unsafe impl ::Convert<::simdty::f32x2> for ::simdty::f64x2 {
     #[inline(always)] fn convert(self) -> ::simdty::f32x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::f32x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }
 }

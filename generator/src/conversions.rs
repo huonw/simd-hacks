@@ -67,12 +67,13 @@ fn convert_x86(w: &mut Writer,
 }
 
 macro_rules! special_cases {
-    ($($count: expr, $in_: ident $iwidth: expr, $out: ident $owidth: expr,
+    ($($icount: expr, $in_: ident $iwidth: expr,
+       $ocount: expr, $out: ident $owidth: expr,
        $instr: expr, $promote: ident);*;) => {{
         let mut map = HashMap::new();
         $(
-            map.insert((Type::new(stringify!($in_), $iwidth, $count),
-                        Type::new(stringify!($out), $owidth, $count)),
+            map.insert((Type::new(stringify!($in_), $iwidth, $icount),
+                        Type::new(stringify!($out), $owidth, $ocount)),
                        ($instr, Promotion::$promote));
             )*
             map
@@ -95,21 +96,26 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-        2, i 32, f 64, "sse2_cvtdq2pd", DoubleInput;
-        2, f 64, i 32, "sse2_cvttpd2dq", HalveOutput;
-        2, f 32, f 64, "sse2_cvtps2pd", DoubleInput;
-        2, f 64, f 32, "sse2_cvtpd2ps", HalveOutput;
+        2, i 32, 2, f 64, "sse2_cvtdq2pd", DoubleInput;
+        2, f 64, 2, i 32, "sse2_cvttpd2dq", HalveOutput;
+        2, f 32, 2, f 64, "sse2_cvtps2pd", DoubleInput;
+        2, f 64, 2, f 32, "sse2_cvtpd2ps", HalveOutput;
 
-        4, i 32, f 32, "sse2_cvtdq2ps", None;
-        4, f 32, i 32, "sse2_cvttps2dq", None;
+        4, i 32, 2, f 64, "sse2_cvtdq2pd", None;
+        2, f 64, 4, i 32, "sse2_cvttpd2dq", None;
+        4, f 32, 2, f 64, "sse2_cvtps2pd", None;
+        2, f 64, 4, f 32, "sse2_cvtpd2ps", None;
 
-        4, i 32, f 64, "avx_cvtdq2_pd_256", None;
-        4, f 64, i 32, "avx_cvtt_pd2dq_256", None;
-        4, f 64, f 32, "avx_cvt_pd2_ps_256", None;
-        4, f 32, f 64, "avx_cvt_ps2_pd_256", None;
+        4, i 32, 4, f 32, "sse2_cvtdq2ps", None;
+        4, f 32, 4, i 32, "sse2_cvttps2dq", None;
 
-        8, i 32, f 32, "avx_cvtdq2_ps_256", None;
-        8, f 32, i 32, "avx_cvtt_ps2dq_256", None;
+        4, i 32, 4, f 64, "avx_cvtdq2_pd_256", None;
+        4, f 64, 4, i 32, "avx_cvtt_pd2dq_256", None;
+        4, f 64, 4, f 32, "avx_cvt_pd2_ps_256", None;
+        4, f 32, 4, f 64, "avx_cvt_ps2_pd_256", None;
+
+        8, i 32, 8, f 32, "avx_cvtdq2_ps_256", None;
+        8, f 32, 8, i 32, "avx_cvtt_ps2dq_256", None;
     };
 
     let mut cfgs = vec![];
@@ -130,4 +136,5 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
             }
         }
     }
+
 }

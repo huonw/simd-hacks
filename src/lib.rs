@@ -36,18 +36,27 @@ pub unsafe trait Vector: Sized + Copy {
     }
 }
 
+/// SIMD vectors which can be separated into two SIMD vectors of half
+/// the size with the same elements.
 pub unsafe trait HalfVector: Vector {
     type Half /*: Vector<Item = Self::Item>*/;
 
+    /// Retrieve the upper and lower halves of the `self` vector.
     fn split(self) -> (Self::Half, Self::Half);
 
+    /// Retrieve the lower half of the `self` vector.
     #[inline]
     fn lower(self) -> Self::Half { self.split().0 }
+    /// Retrieve the upper half of the `self` vector.
     #[inline]
     fn upper(self) -> Self::Half { self.split().1 }
 }
+/// SIMD vectors which can be merged with another of the same type to
+/// create one of double the length with the same elements.
 pub unsafe trait DoubleVector: Vector {
     type Double /*: Vector<Item = Self::Item>*/;
 
+    /// Concatenate the elements of `self` and `other` into a single
+    /// SIMD vector.
     fn merge(self, other: Self) -> Self::Double;
 }

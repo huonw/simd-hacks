@@ -44,9 +44,9 @@ fn convert_x86(w: &mut Writer,
     let cfg = format!("any({x86_64}feature=\"{name}\")", x86_64 = x86_64, name = name);
 
     let (input, output) = match promote {
-        Promotion::None => ("", ""),
-        Promotion::DoubleInput => (".merge(::std::mem::uninitialized())", ""),
-        Promotion::HalveOutput => ("", ".lower()"),
+        Promotion::None => ("self", ""),
+        Promotion::DoubleInput => ("::DoubleVector::merge(self,::std::mem::uninitialized())", ""),
+        Promotion::HalveOutput => ("self", "::HalfVector::lower"),
     };
 
 
@@ -54,7 +54,7 @@ fn convert_x86(w: &mut Writer,
 #[cfg({cfg})]
 {header}
     #[inline(always)] fn convert(self) -> {out} {{
-        (unsafe {{ ::llvmint::x86::{instr}(self{input}) }}){output}
+        {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})
     }}
 }}",
              cfg = cfg,

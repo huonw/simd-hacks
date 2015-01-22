@@ -16,10 +16,10 @@ Functionality for working with SIMD registers and instructions.
 
 [features]
 
-default = []
+default = ["shims"]
 
 # avoid shimming in replacements if there's no direct instruction
-no_naive = []
+shims = []
 
 # various x86 feature sets
 mmx = []

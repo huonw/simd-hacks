@@ -85,7 +85,7 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
 
     writeln!(&mut out, "mod naive;").unwrap();
     let mut naive = File::create(&dst.join("convert_impls/naive.rs")).unwrap();
-    writeln!(&mut naive, "#![cfg(not(feature = \"no_naive\"))]").unwrap();
+    writeln!(&mut naive, "#![cfg(feature = \"shims\")]").unwrap();
 
     writeln!(&mut out, "mod x86;").unwrap();
     let mut x86 = File::create(&dst.join("convert_impls/x86.rs")).unwrap();

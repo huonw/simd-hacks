@@ -1,4 +1,4 @@
-#![cfg(not(feature = "no_naive"))]
+#![cfg(feature = "shims")]
 #[cfg(not(any()))]
 unsafe impl ::Convert<::simdty::u8x2> for ::simdty::u8x2 {
     #[inline(always)] fn convert(self) -> ::simdty::u8x2 { let (a, b) = ::HalfVector::split(self); <<::simdty::u8x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert()) }

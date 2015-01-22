@@ -7,12 +7,9 @@ use ty::Type;
 fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]) {
     assert!(in_.count == out.count);
     let count = in_.count;
-    let header = src::impl_header("::Convert", true, in_, Some(out));
-    write!(w, "\
-#[cfg(not(any({cfg})))]
-{header}
-    #[inline(always)] fn convert(self) -> {out} {{ ",
-           cfg = cfgs.connect(","), header = header, out = out.name).unwrap();
+    writeln!(w, "#[cfg(not(any({cfg})))]", cfg = cfgs.connect(",")).unwrap();
+    src::impl_header(w, "::Convert", true, in_, Some(out)).unwrap();
+    write!(w, "    #[inline(always)] fn convert(self) -> {out} {{ ", out = out.name).unwrap();
 
     if count == 1 {
         write!(w, "self as {out}", out = out.name).unwrap();
@@ -20,7 +17,6 @@ fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]
         src::subdividing(w, "convert", &out.name[]).unwrap();
     }
     writeln!(w," }}\n}}").unwrap();
-
 }
 
 #[derive(Copy)]
@@ -47,15 +43,12 @@ fn convert_x86(w: &mut Writer,
     };
 
 
-    writeln!(w,"\
-#[cfg({cfg})]
-{header}
-    #[inline(always)] fn convert(self) -> {out} {{
+    writeln!(w,"#[cfg({cfg})]", cfg = cfg).unwrap();
+    src::impl_header(w, "::Convert", true, in_, Some(out)).unwrap();
+    writeln!(w,"    #[inline(always)] fn convert(self) -> {out} {{
         {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})
     }}
 }}",
-             cfg = cfg,
-             header = src::impl_header("::Convert", true, in_, Some(out)),
              input = input, output = output,
              out = out.name,
              instr = instr).unwrap();

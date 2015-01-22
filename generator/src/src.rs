@@ -1,8 +1,9 @@
 use ty;
 use std::io::IoResult;
 
-pub fn impl_header(trait_: &str, unsafe_: bool,
-                   self_: &ty::Type, param: Option<&ty::Type>) -> String {
+pub fn impl_header(w: &mut Writer,
+                   trait_: &str, unsafe_: bool,
+                   self_: &ty::Type, param: Option<&ty::Type>) -> IoResult<()> {
 
     let mut cfgs = vec![];
     if let Some(ref c) = self_.cfg { cfgs.push(&c[]) }
@@ -16,7 +17,7 @@ pub fn impl_header(trait_: &str, unsafe_: bool,
         }
     };
 
-    format!("\
+    writeln!(w, "\
 {cfg}{unsafe_}impl {trait_}{params} for {self_} {{",
             cfg = if cfgs.is_empty() {"".to_string()} else {
                 format!("#[cfg(all({}))] ", cfgs.connect(", "))

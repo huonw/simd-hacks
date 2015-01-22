@@ -1,4 +1,5 @@
 use ty;
+use std::io::IoResult;
 
 pub fn impl_header(trait_: &str, unsafe_: bool,
                    self_: &ty::Type, param: Option<&ty::Type>) -> String {
@@ -24,4 +25,11 @@ pub fn impl_header(trait_: &str, unsafe_: bool,
             trait_ = trait_,
             params = params,
             self_ = self_.name)
+}
+
+pub fn subdividing(w: &mut Writer, method: &str, out: &str) -> IoResult<()> {
+    write!(w,
+           "let (a, b) = ::HalfVector::split(self); \
+            <<{out} as ::HalfVector>::Half as ::DoubleVector>::merge(a.{method}(), b.{method}())",
+            method = method, out = out)
 }

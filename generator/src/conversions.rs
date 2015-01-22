@@ -17,10 +17,7 @@ fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]
     if count == 1 {
         write!(w, "self as {out}", out = out.name).unwrap();
     } else {
-        write!(w,
-               "let (a, b) = ::HalfVector::split(self); \
-               <<{out} as ::HalfVector>::Half as ::DoubleVector>::merge(a.convert(), b.convert())",
-               out = out.name).unwrap();
+        src::subdividing(w, "convert", &out.name[]).unwrap();
     }
     writeln!(w," }}\n}}").unwrap();
 

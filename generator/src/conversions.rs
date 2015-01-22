@@ -9,26 +9,19 @@ fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]
     let count = in_.count;
     writeln!(w, "#[cfg(not(any({cfg})))]", cfg = cfgs.connect(",")).unwrap();
     src::impl_header(w, "::Convert", true, in_, Some(out)).unwrap();
-    write!(w, "    #[inline(always)] fn convert(self) -> {out} {{ ", out = out.name).unwrap();
-
-    if count == 1 {
-        write!(w, "self as {out}", out = out.name).unwrap();
-    } else {
-        src::subdividing(w, "convert", &out.name[]).unwrap();
-    }
-    writeln!(w," }}\n}}").unwrap();
-}
-
-#[derive(Copy)]
-enum Promotion {
-    None,
-    DoubleInput,
-    HalveOutput,
+    src::method(w, "convert", out, src::Promotion::None, |w, _, _| {
+        if count == 1 {
+            Some(write!(w, " self as {out} ", out = out.name))
+        } else {
+            None
+        }
+    }).unwrap();
+    w.write_str("}\n").unwrap();
 }
 
 fn convert_x86(w: &mut Writer,
                in_: &ty::Type, out: &ty::Type,
-               instr: &str, promote: Promotion) -> String {
+               instr: &str, promote: src::Promotion) -> String {
     let name = &instr[..instr.bytes().position(|b| b == b'_').unwrap()];
     let x86_64 = match name {
         "sse" | "sse2" => "target_arch = \"x86_64\",",
@@ -36,39 +29,17 @@ fn convert_x86(w: &mut Writer,
     };
     let cfg = format!("any({x86_64}feature=\"{name}\")", x86_64 = x86_64, name = name);
 
-    let (input, output) = match promote {
-        Promotion::None => ("self", ""),
-        Promotion::DoubleInput => ("::DoubleVector::merge(self,::std::mem::uninitialized())", ""),
-        Promotion::HalveOutput => ("self", "::HalfVector::lower"),
-    };
-
-
     writeln!(w,"#[cfg({cfg})]", cfg = cfg).unwrap();
     src::impl_header(w, "::Convert", true, in_, Some(out)).unwrap();
-    writeln!(w,"    #[inline(always)] fn convert(self) -> {out} {{
-        {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})
-    }}
-}}",
-             input = input, output = output,
-             out = out.name,
-             instr = instr).unwrap();
+    src::method(w, "convert", out, promote, |w, input, output| {
+        Some(write!(w, "\n        {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})\n    ",
+                    input=input, output=output, instr=instr))
+    }).unwrap();
+    w.write_str("}\n").unwrap();
 
     cfg
 }
 
-macro_rules! special_cases {
-    ($($icount: expr, $in_: ident $iwidth: expr,
-       $ocount: expr, $out: ident $owidth: expr,
-       $instr: expr, $promote: ident);*;) => {{
-        let mut map = HashMap::new();
-        $(
-            map.insert((Type::new(stringify!($in_), $iwidth, $icount),
-                        Type::new(stringify!($out), $owidth, $ocount)),
-                       ($instr, Promotion::$promote));
-            )*
-            map
-    }}
-}
 pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     io::fs::mkdir_recursive(&dst.join("convert_impls"), io::USER_RWX).unwrap();
     let mut out = File::create(&dst.join("convert_impls/mod.rs")).unwrap();

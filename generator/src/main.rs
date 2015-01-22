@@ -2,9 +2,14 @@
 use std::io::File;
 use std::os;
 
+#[macro_use]
+mod macros;
+
 mod ty;
 mod src;
 mod conversions;
+
+mod maths;
 
 fn vector_impls(ty: &ty::Types, dst: &Path) {
     let mut out = File::create(&dst.join("vector_impls.rs")).unwrap();

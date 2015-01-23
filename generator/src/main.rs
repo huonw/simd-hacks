@@ -89,6 +89,7 @@ fn main() {
 
     {
         use conversions::convert_impls;
-        run!(vector_impls, bitcast_impls, convert_impls, half_double_impls);
+        use maths::maths_impls;
+        run!(vector_impls, bitcast_impls, convert_impls, half_double_impls, maths_impls);
     }
 }

@@ -2,7 +2,7 @@
 //!
 //! [Source](https://github.com/huonw/simd), [crates.io](https://crates.io/crates/simd)
 
-#![feature(trace_macros)]
+#![feature(trace_macros, link_llvm_intrinsics, simd_ffi)]
 
 extern crate simdty;
 extern crate llvmint;
@@ -15,6 +15,8 @@ pub use convert::semantic::{Convert, Tails, TailsMut};
 mod convert;
 
 mod generated;
+
+mod maths;
 
 /// A SIMD vector, storing precisely `count()` elements of (primitive)
 /// type `Item` sequentially in memory.

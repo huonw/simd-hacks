@@ -47,10 +47,11 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
             let pair = (i.clone(), o.clone());
             cfgs.clear();
             if let Some(&(instr, promote)) = x86_special.get(&pair) {
-                let c = src::x86_impl(&mut x86, "::Convert", "convert",
-                                        i, o,
-                                        &cfgs[],
-                                        instr, promote).unwrap();
+                let c = src::x86_impl(&mut x86, "::Convert", true,
+                                      "convert",
+                                      i, Some(o),
+                                      &cfgs[],
+                                      instr, promote).unwrap();
                 cfgs.push(c);
             }
 
@@ -60,7 +61,8 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
                 } else {
                     &mut naive as &mut Writer
                 };
-                src::naive_impl(writer,"::Convert", "convert", i, o, &cfgs[], |w| {
+                src::naive_impl(writer,"::Convert", true,
+                                "convert", i, Some(o), &cfgs[], |w| {
                     write!(w, " self as {out} ", out = o.name)
                 }).unwrap()
             }

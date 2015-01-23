@@ -68,15 +68,16 @@ pub fn method<F>(w: &mut Writer, method: &str, out: &ty::Type, promote: Promotio
     w.write_str("}\n")
 }
 
-pub fn naive_impl<F>(w: &mut Writer, trait_: &str, meth: &str, in_: &ty::Type, out: &ty::Type,
-                     cfgs: &[String],
-                     base_case: F) -> IoResult<()>
+pub fn naive_impl<'a, F>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str, in_: &'a ty::Type,
+                         out: Option<&'a ty::Type>,
+                         cfgs: &[String],
+                         base_case: F) -> IoResult<()>
     where F: FnOnce(&mut Writer) -> IoResult<()> {
-    assert!(in_.count == out.count);
+    assert!(out.map_or(true, |o| in_.count == o.count));
     let count = in_.count;
     try!(writeln!(w, "#[cfg(not(any({cfg})))]", cfg = cfgs.connect(",")));
-    try!(impl_header(w, trait_, true, in_, Some(out)));
-    try!(method(w, meth, out, Promotion::None, move |w, _, _| {
+    try!(impl_header(w, trait_, unsafe_, in_, out));
+    try!(method(w, meth, out.unwrap_or(in_), Promotion::None, move |w, _, _| {
         if count == 1 {
             Some(base_case(w))
         } else {
@@ -87,10 +88,10 @@ pub fn naive_impl<F>(w: &mut Writer, trait_: &str, meth: &str, in_: &ty::Type, o
 
 }
 
-pub fn x86_impl(w: &mut Writer, trait_: &str, meth: &str,
-                in_: &ty::Type, out: &ty::Type,
-                cfgs: &[String],
-                instr: &str, promote: Promotion) -> IoResult<String> {
+pub fn x86_impl<'a>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str,
+                    in_: &'a ty::Type, out: Option<&'a ty::Type>,
+                    cfgs: &[String],
+                    instr: &str, promote: Promotion) -> IoResult<String> {
     let name = &instr[..instr.bytes().position(|b| b == b'_').unwrap()];
     let x86_64 = match name {
         "sse" | "sse2" => "target_arch = \"x86_64\",",
@@ -100,8 +101,8 @@ pub fn x86_impl(w: &mut Writer, trait_: &str, meth: &str,
 
     try!(writeln!(w,"#[cfg(all(not(any({previous})), {cfg}))]",
              previous = cfgs.connect(", "), cfg = cfg));
-    try!(impl_header(w, trait_, true, in_, Some(out)));
-    try!(method(w, meth, out, promote, |w, input, output| {
+    try!(impl_header(w, trait_, unsafe_, in_, out));
+    try!(method(w, meth, out.unwrap_or(in_), promote, |w, input, output| {
         Some(write!(w, "\n        {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})\n    ",
                     input=input, output=output, instr=instr))
     }));

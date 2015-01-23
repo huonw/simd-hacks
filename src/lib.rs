@@ -10,7 +10,7 @@ extern crate llvmint;
 use std::mem;
 
 pub use convert::bitcast::Bitcast;
-pub use convert::semantic::Convert;
+pub use convert::semantic::{Convert, Tails, TailsMut};
 
 mod convert;
 

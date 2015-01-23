@@ -1,3 +1,9 @@
 /target
 /Cargo.lock
 /generator/target
+# --emit=...
+*.s
+*.ll
+# `perf record` output files
+*.data
+*.data.old

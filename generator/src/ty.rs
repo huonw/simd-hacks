@@ -9,6 +9,7 @@ pub struct Types {
 #[derive(Show, Eq, PartialEq, Clone, Hash)]
 pub struct Type {
     pub name: String,
+    pub llvm: String,
     pub elem: String,
     pub tot_bitsize: usize,
     pub count: usize,
@@ -23,6 +24,11 @@ impl Type {
                 format!("{}{}", prefix, width)
             } else {
                 format!("::simdty::{}{}x{}", prefix, width, count)
+            },
+            llvm: if count == 1 {
+                format!("{}{}", prefix, width)
+            } else {
+                format!("v{}{}{}", count, prefix, width)
             },
             elem: format!("{}{}", prefix, width),
             tot_bitsize: count * width,

@@ -78,7 +78,7 @@ unsafe impl<'a, In, Out> Convert<Tails<'a, In, Out>> for &'a [In]
     #[inline]
     fn convert(self) -> Tails<'a,In,Out> {
         let isize = mem::size_of::<In>();
-        let osize = mem::size_of::<In>();
+        let osize = mem::size_of::<Out>();
         let oalign = mem::align_of::<Out>();
 
         let start = self.as_ptr() as usize;
@@ -91,7 +91,6 @@ unsafe impl<'a, In, Out> Convert<Tails<'a, In, Out>> for &'a [In]
             cmp::min(len, (oalign - offset) / isize)
         };
         let remaining = len - slen;
-
         let mlen_in_outs = remaining * isize / osize;
         let mlen_in_ins = mlen_in_outs * osize / isize;
 
@@ -113,7 +112,7 @@ unsafe impl<'a, In, Out> Convert<TailsMut<'a, In, Out>> for &'a mut [In]
     #[inline]
     fn convert(self) -> TailsMut<'a,In,Out> {
         let isize = mem::size_of::<In>();
-        let osize = mem::size_of::<In>();
+        let osize = mem::size_of::<Out>();
         let oalign = mem::align_of::<Out>();
 
         let start = self.as_ptr() as usize;

@@ -1,44 +1,6 @@
-use std::collections::HashMap;
 use std::io::{self, File};
 use src;
 use ty;
-use ty::Type;
-
-fn convert_naive(w: &mut Writer, in_: &ty::Type, out: &ty::Type, cfgs: &[String]) {
-    assert!(in_.count == out.count);
-    let count = in_.count;
-    writeln!(w, "#[cfg(not(any({cfg})))]", cfg = cfgs.connect(",")).unwrap();
-    src::impl_header(w, "::Convert", true, in_, Some(out)).unwrap();
-    src::method(w, "convert", out, src::Promotion::None, |w, _, _| {
-        if count == 1 {
-            Some(write!(w, " self as {out} ", out = out.name))
-        } else {
-            None
-        }
-    }).unwrap();
-    w.write_str("}\n").unwrap();
-}
-
-fn convert_x86(w: &mut Writer,
-               in_: &ty::Type, out: &ty::Type,
-               instr: &str, promote: src::Promotion) -> String {
-    let name = &instr[..instr.bytes().position(|b| b == b'_').unwrap()];
-    let x86_64 = match name {
-        "sse" | "sse2" => "target_arch = \"x86_64\",",
-        _ => ""
-    };
-    let cfg = format!("any({x86_64}feature=\"{name}\")", x86_64 = x86_64, name = name);
-
-    writeln!(w,"#[cfg({cfg})]", cfg = cfg).unwrap();
-    src::impl_header(w, "::Convert", true, in_, Some(out)).unwrap();
-    src::method(w, "convert", out, promote, |w, input, output| {
-        Some(write!(w, "\n        {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})\n    ",
-                    input=input, output=output, instr=instr))
-    }).unwrap();
-    w.write_str("}\n").unwrap();
-
-    cfg
-}
 
 pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     io::fs::mkdir_recursive(&dst.join("convert_impls"), io::USER_RWX).unwrap();
@@ -85,15 +47,22 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
             let pair = (i.clone(), o.clone());
             cfgs.clear();
             if let Some(&(instr, promote)) = x86_special.get(&pair) {
-                cfgs.push(convert_x86(&mut x86, i, o, instr, promote));
+                let c = src::x86_impl(&mut x86, "::Convert", "convert",
+                                        i, o,
+                                        &cfgs[],
+                                        instr, promote).unwrap();
+                cfgs.push(c);
             }
 
             if i.count == o.count {
-                if i.count == 1 {
-                    convert_naive(&mut out, i, o, &cfgs[]);
+                let writer = if i.count == 1 {
+                    &mut out as &mut Writer
                 } else {
-                    convert_naive(&mut naive, i, o, &cfgs[]);
-                }
+                    &mut naive as &mut Writer
+                };
+                src::naive_impl(writer,"::Convert", "convert", i, o, &cfgs[], |w| {
+                    write!(w, " self as {out} ", out = o.name)
+                }).unwrap()
             }
         }
     }

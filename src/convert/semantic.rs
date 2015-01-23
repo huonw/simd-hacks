@@ -62,6 +62,11 @@ pub struct Tails<'a,T:'a,U:'a> {
     pub middle: &'a [U],
     pub end: &'a [T],
 }
+impl<'a, T, U> Copy for Tails<'a, T, U> {}
+impl<'a, T, U> Clone for Tails<'a, T, U> {
+    fn clone(&self) -> Tails<'a, T, U> { *self }
+}
+
 /// A type that repesents a `&mut [U]` converted from a `&mut [T]`,
 /// where the conversion may be forced to leave leading/trailing
 /// elements (due to alignment/size mismatches).

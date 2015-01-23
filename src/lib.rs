@@ -16,7 +16,7 @@ mod convert;
 
 mod generated;
 
-mod maths;
+pub mod maths;
 
 /// A SIMD vector, storing precisely `count()` elements of (primitive)
 /// type `Item` sequentially in memory.
@@ -61,4 +61,17 @@ pub unsafe trait DoubleVector: Vector {
     /// Concatenate the elements of `self` and `other` into a single
     /// SIMD vector.
     fn merge(self, other: Self) -> Self::Double;
+}
+
+/// Return a platform-specific approximation to the square root of
+/// `x`.
+#[inline]
+pub fn sqrt<T: maths::sqrt::Sqrt>(x: T) -> T {
+    x.sqrt()
+}
+/// Return a platform-specific approximation to the reciprocal-square
+/// root of `x`.
+#[inline]
+pub fn rsqrt<T: maths::sqrt::RSqrt>(x: T) -> T {
+    x.rsqrt()
 }

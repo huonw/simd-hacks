@@ -19,26 +19,26 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-        2, i 32, 2, f 64, "sse2_cvtdq2pd", DoubleInput;
-        2, f 64, 2, i 32, "sse2_cvttpd2dq", HalveOutput;
-        2, f 32, 2, f 64, "sse2_cvtps2pd", DoubleInput;
-        2, f 64, 2, f 32, "sse2_cvtpd2ps", HalveOutput;
+        2, i 32, 2, f 64, "sse2_cvtdq2pd", 1, 0;
+        2, f 64, 2, i 32, "sse2_cvttpd2dq", 0, 1;
+        2, f 32, 2, f 64, "sse2_cvtps2pd", 1, 0;
+        2, f 64, 2, f 32, "sse2_cvtpd2ps", 0, 1;
 
-        4, i 32, 2, f 64, "sse2_cvtdq2pd", None;
-        2, f 64, 4, i 32, "sse2_cvttpd2dq", None;
-        4, f 32, 2, f 64, "sse2_cvtps2pd", None;
-        2, f 64, 4, f 32, "sse2_cvtpd2ps", None;
+        4, i 32, 2, f 64, "sse2_cvtdq2pd", 0, 0;
+        2, f 64, 4, i 32, "sse2_cvttpd2dq", 0, 0;
+        4, f 32, 2, f 64, "sse2_cvtps2pd", 0, 0;
+        2, f 64, 4, f 32, "sse2_cvtpd2ps", 0, 0;
 
-        4, i 32, 4, f 32, "sse2_cvtdq2ps", None;
-        4, f 32, 4, i 32, "sse2_cvttps2dq", None;
+        4, i 32, 4, f 32, "sse2_cvtdq2ps", 0, 0;
+        4, f 32, 4, i 32, "sse2_cvttps2dq", 0, 0;
 
-        4, i 32, 4, f 64, "avx_cvtdq2_pd_256", None;
-        4, f 64, 4, i 32, "avx_cvtt_pd2dq_256", None;
-        4, f 64, 4, f 32, "avx_cvt_pd2_ps_256", None;
-        4, f 32, 4, f 64, "avx_cvt_ps2_pd_256", None;
+        4, i 32, 4, f 64, "avx_cvtdq2_pd_256", 0, 0;
+        4, f 64, 4, i 32, "avx_cvtt_pd2dq_256", 0, 0;
+        4, f 64, 4, f 32, "avx_cvt_pd2_ps_256", 0, 0;
+        4, f 32, 4, f 64, "avx_cvt_ps2_pd_256", 0, 0;
 
-        8, i 32, 8, f 32, "avx_cvtdq2_ps_256", None;
-        8, f 32, 8, i 32, "avx_cvtt_ps2dq_256", None;
+        8, i 32, 8, f 32, "avx_cvtdq2_ps_256", 0, 0;
+        8, f 32, 8, i 32, "avx_cvtt_ps2dq_256", 0, 0;
     };
 
     let mut cfgs = vec![];
@@ -63,7 +63,7 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
                 };
                 src::naive_impl(writer,"::Convert", true,
                                 "convert", i, Some(o), &cfgs[], |w| {
-                    write!(w, " self as {out} ", out = o.name)
+                    write!(w, "in_ as {out}", out = o.name)
                 }).unwrap()
             }
         }

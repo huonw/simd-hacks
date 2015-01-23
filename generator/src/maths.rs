@@ -31,10 +31,10 @@ fn sqrt_impls(types: &ty::Types, dst: &Path) {
             continue
         }
         src::impl_header(&mut out, "::maths::sqrt::Sqrt", false, ty, None).unwrap();
-        src::method(&mut out, "sqrt", ty, src::Promotion::None, |w, _, _| {
+        src::method(&mut out, "sqrt", ty, src::Promotion::new(0, 0), |w,| {
             Some(write!(w, "\n        \
         extern {{ #[link_name = \"llvm.sqrt.{llvm}\"] fn sqrt(x: {ty}) -> {ty}; }}
-        unsafe {{sqrt(self)}}\n    ",
+        unsafe {{sqrt(in_)}}\n    ",
                    llvm = ty.llvm,
                    ty = ty.name))
         }).unwrap();
@@ -59,8 +59,8 @@ fn rsqrt_impls(types: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-        4, f 32, 4, f 32, "sse_rsqrt_ps", None;
-        8, f 32, 8, f 32, "avx_rsqrt_ps_256", None;
+        4, f 32, 4, f 32, "sse_rsqrt_ps", 0, 0;
+        8, f 32, 8, f 32, "avx_rsqrt_ps_256", 0, 0;
     };
     let mut cfgs = vec![];
     for ty in types.all.iter() {
@@ -79,7 +79,7 @@ fn rsqrt_impls(types: &ty::Types, dst: &Path) {
         }
 
         src::naive_impl(&mut naive, "::maths::sqrt::RSqrt", false, "rsqrt", ty, None, &cfgs[], |w| {
-            write!(w, " 1.0 / ::maths::sqrt::Sqrt::sqrt(self)")
+            write!(w, " 1.0 / ::maths::sqrt::Sqrt::sqrt(in_)")
         }).unwrap();
     }
 }

@@ -2,10 +2,14 @@ use ty;
 use std::io::IoResult;
 
 #[derive(Copy)]
-pub enum Promotion {
-    None,
-    DoubleInput,
-    HalveOutput,
+pub struct Promotion {
+    input_doubles: usize,
+    output_halves: usize,
+}
+impl Promotion {
+    pub fn new(id: usize, oh: usize) -> Promotion {
+        Promotion { input_doubles: id, output_halves: oh }
+    }
 }
 
 
@@ -38,26 +42,34 @@ pub fn impl_header(w: &mut Writer,
 
 pub fn subdividing(w: &mut Writer, method: &str, out: &str) -> IoResult<()> {
     write!(w,
-           "let (a, b) = ::HalfVector::split(self); \
+           "let (a, b) = ::HalfVector::split(in_); \
             <<{out} as ::HalfVector>::Half as ::DoubleVector>::merge(a.{method}(), b.{method}())",
             method = method, out = out)
 }
 
 pub fn method<F>(w: &mut Writer, method: &str, out: &ty::Type, promote: Promotion,
                  body: F) -> IoResult<()>
-    where F: FnOnce(&mut Writer, &str, &str) -> Option<IoResult<()>>
+    where F: FnOnce(&mut Writer) -> Option<IoResult<()>>
 {
-    let (input, output) = match promote {
-        Promotion::None => ("self", ""),
-        Promotion::DoubleInput
-            => ("::DoubleVector::merge(self,::std::mem::uninitialized())", ""),
-        Promotion::HalveOutput
-            => ("self", "::HalfVector::lower"),
-    };
+    let mut input = "self".to_string();
+    let mut i_left = "";
+    let mut i_right = "";
+    let mut output = "out".to_string();
 
-    try!(write!(w, "    #[inline(always)] fn {method}(self) -> {out} {{",
-             method = method, out = &out.name[]));
-    match body(w, input, output) {
+    for _ in 0..promote.input_doubles {
+        input = format!("::DoubleVector::merge({}, ::std::mem::uninitialized())", input);
+        i_left = "unsafe {";
+        i_right = "}"
+    }
+    for _ in 0..promote.output_halves {
+        output = format!("::HalfVector::lower({})", output);
+    }
+
+    try!(write!(w, "    #[inline(always)] fn {method}(self) -> {out} {{
+        let in_ = {i_left}{input}{i_right}; let out = {{",
+             method = method, out = &out.name[],
+                input = input, i_left = i_left, i_right = i_right));
+    match body(w) {
         Some(r) => try!(r),
         None => {
             try!(w.write_str(" "));
@@ -65,7 +77,7 @@ pub fn method<F>(w: &mut Writer, method: &str, out: &ty::Type, promote: Promotio
             try!(w.write_str(" "));
         }
     }
-    w.write_str("}\n")
+    writeln!(w, "}}; {output} }}", output = output)
 }
 
 pub fn naive_impl<'a, F>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str, in_: &'a ty::Type,
@@ -77,7 +89,7 @@ pub fn naive_impl<'a, F>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str
     let count = in_.count;
     try!(writeln!(w, "#[cfg(not(any({cfg})))]", cfg = cfgs.connect(",")));
     try!(impl_header(w, trait_, unsafe_, in_, out));
-    try!(method(w, meth, out.unwrap_or(in_), Promotion::None, move |w, _, _| {
+    try!(method(w, meth, out.unwrap_or(in_), Promotion::new(0, 0), move |w| {
         if count == 1 {
             Some(base_case(w))
         } else {
@@ -102,9 +114,8 @@ pub fn x86_impl<'a>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str,
     try!(writeln!(w,"#[cfg(all(not(any({previous})), {cfg}))]",
              previous = cfgs.connect(", "), cfg = cfg));
     try!(impl_header(w, trait_, unsafe_, in_, out));
-    try!(method(w, meth, out.unwrap_or(in_), promote, |w, input, output| {
-        Some(write!(w, "\n        {output}(unsafe {{ ::llvmint::x86::{instr}({input}) }})\n    ",
-                    input=input, output=output, instr=instr))
+    try!(method(w, meth, out.unwrap_or(in_), promote, |w| {
+        Some(write!(w, "unsafe{{::llvmint::x86::{instr}(in_)}}", instr=instr))
     }));
     try!(w.write_str("}\n"));
 

@@ -59,8 +59,10 @@ fn rsqrt_impls(types: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-        4, f 32, 4, f 32, "sse_rsqrt_ps", 0, 0;
-        8, f 32, 8, f 32, "avx_rsqrt_ps_256", 0, 0;
+        1,
+
+        4, f 32, 4, f 32, "sse_rsqrt_ps", 0, 0, true;
+        8, f 32, 8, f 32, "avx_rsqrt_ps_256", 0, 0, true;
     };
     let mut cfgs = vec![];
     for ty in types.all.iter() {
@@ -70,12 +72,14 @@ fn rsqrt_impls(types: &ty::Types, dst: &Path) {
         }
         cfgs.clear();
         let pair = (ty.clone(), ty.clone());
-        if let Some(&(instr, promote)) = x86_special.get(&pair) {
-            let c = src::x86_impl(&mut x86, "::maths::sqrt::RSqrt", false, "rsqrt",
-                                  ty, None,
-                                  &cfgs[],
-                                  instr, promote).unwrap();
-            cfgs.push(c);
+        if let Some(choices) = x86_special.get(&pair) {
+            for &(instr, promote) in choices.iter() {
+                let c = src::x86_impl(&mut x86, "::maths::sqrt::RSqrt", false, "rsqrt",
+                                      ty, None,
+                                      &cfgs[],
+                                      instr, promote).unwrap();
+                cfgs.push(c);
+            }
         }
 
         src::naive_impl(&mut naive, "::maths::sqrt::RSqrt", false, "rsqrt", ty, None, &cfgs[], |w| {

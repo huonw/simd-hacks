@@ -19,26 +19,28 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
     writeln!(&mut arm, "#![cfg(any(target_arch = \"arm\"))]").unwrap();
 
     let x86_special = special_cases! {
-        2, i 32, 2, f 64, "sse2_cvtdq2pd", 1, 0;
-        2, f 64, 2, i 32, "sse2_cvttpd2dq", 0, 1;
-        2, f 32, 2, f 64, "sse2_cvtps2pd", 1, 0;
-        2, f 64, 2, f 32, "sse2_cvtpd2ps", 0, 1;
+        2,
 
-        4, i 32, 2, f 64, "sse2_cvtdq2pd", 0, 0;
-        2, f 64, 4, i 32, "sse2_cvttpd2dq", 0, 0;
-        4, f 32, 2, f 64, "sse2_cvtps2pd", 0, 0;
-        2, f 64, 4, f 32, "sse2_cvtpd2ps", 0, 0;
+        2, i 32, 2, f 64, "sse2_cvtdq2pd", 1, 0, false;
+        2, f 64, 2, i 32, "sse2_cvttpd2dq", 0, 1, false;
+        2, f 32, 2, f 64, "sse2_cvtps2pd", 1, 0, false;
+        2, f 64, 2, f 32, "sse2_cvtpd2ps", 0, 1, false;
 
-        4, i 32, 4, f 32, "sse2_cvtdq2ps", 0, 0;
-        4, f 32, 4, i 32, "sse2_cvttps2dq", 0, 0;
+        4, i 32, 2, f 64, "sse2_cvtdq2pd", 0, 0, false;
+        2, f 64, 4, i 32, "sse2_cvttpd2dq", 0, 0, false;
+        4, f 32, 2, f 64, "sse2_cvtps2pd", 0, 0, false;
+        2, f 64, 4, f 32, "sse2_cvtpd2ps", 0, 0, false;
 
-        4, i 32, 4, f 64, "avx_cvtdq2_pd_256", 0, 0;
-        4, f 64, 4, i 32, "avx_cvtt_pd2dq_256", 0, 0;
-        4, f 64, 4, f 32, "avx_cvt_pd2_ps_256", 0, 0;
-        4, f 32, 4, f 64, "avx_cvt_ps2_pd_256", 0, 0;
+        4, i 32, 4, f 32, "sse2_cvtdq2ps", 0, 0, true;
+        4, f 32, 4, i 32, "sse2_cvttps2dq", 0, 0, true;
 
-        8, i 32, 8, f 32, "avx_cvtdq2_ps_256", 0, 0;
-        8, f 32, 8, i 32, "avx_cvtt_ps2dq_256", 0, 0;
+        4, i 32, 4, f 64, "avx_cvtdq2_pd_256", 0, 0, true;
+        4, f 64, 4, i 32, "avx_cvtt_pd2dq_256", 0, 0, true;
+        4, f 64, 4, f 32, "avx_cvt_pd2_ps_256", 0, 0, true;
+        4, f 32, 4, f 64, "avx_cvt_ps2_pd_256", 0, 0, true;
+
+        8, i 32, 8, f 32, "avx_cvtdq2_ps_256", 0, 0, true;
+        8, f 32, 8, i 32, "avx_cvtt_ps2dq_256", 0, 0, true;
     };
 
     let mut cfgs = vec![];
@@ -46,13 +48,15 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
         for o in tys.all.iter() {
             let pair = (i.clone(), o.clone());
             cfgs.clear();
-            if let Some(&(instr, promote)) = x86_special.get(&pair) {
-                let c = src::x86_impl(&mut x86, "::Convert", true,
-                                      "convert",
-                                      i, Some(o),
-                                      &cfgs[],
-                                      instr, promote).unwrap();
-                cfgs.push(c);
+            if let Some(choices) = x86_special.get(&pair) {
+                for &(instr, promote) in choices.iter() {
+                    let c = src::x86_impl(&mut x86, "::Convert", true,
+                                          "convert",
+                                          i, Some(o),
+                                          &cfgs[],
+                                          instr, promote).unwrap();
+                    cfgs.push(c);
+                }
             }
 
             if i.count == o.count {

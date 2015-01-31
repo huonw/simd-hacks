@@ -1,5 +1,5 @@
 #![cfg(feature = "shims")]
-#[cfg(not(any()))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse"),any(feature="avx"))))]
 impl ::maths::sqrt::RSqrt for f32 {
     #[inline(always)] fn rsqrt(self) -> f32 {
         let in_ = self; let out = { 1.0 / ::maths::sqrt::Sqrt::sqrt(in_)}; out }
@@ -9,7 +9,7 @@ impl ::maths::sqrt::RSqrt for f64 {
     #[inline(always)] fn rsqrt(self) -> f64 {
         let in_ = self; let out = { 1.0 / ::maths::sqrt::Sqrt::sqrt(in_)}; out }
 }
-#[cfg(not(any()))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse"),any(feature="avx"))))]
 impl ::maths::sqrt::RSqrt for ::simdty::f32x2 {
     #[inline(always)] fn rsqrt(self) -> ::simdty::f32x2 {
         let in_ = self; let out = { let (a, b) = ::HalfVector::split(in_); <<::simdty::f32x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.rsqrt(), b.rsqrt()) }; out }
@@ -19,7 +19,7 @@ impl ::maths::sqrt::RSqrt for ::simdty::f64x2 {
     #[inline(always)] fn rsqrt(self) -> ::simdty::f64x2 {
         let in_ = self; let out = { let (a, b) = ::HalfVector::split(in_); <<::simdty::f64x2 as ::HalfVector>::Half as ::DoubleVector>::merge(a.rsqrt(), b.rsqrt()) }; out }
 }
-#[cfg(not(any(any(target_arch = "x86_64",feature="sse"))))]
+#[cfg(not(any(any(target_arch = "x86_64",feature="sse"),any(feature="avx"))))]
 impl ::maths::sqrt::RSqrt for ::simdty::f32x4 {
     #[inline(always)] fn rsqrt(self) -> ::simdty::f32x4 {
         let in_ = self; let out = { let (a, b) = ::HalfVector::split(in_); <<::simdty::f32x4 as ::HalfVector>::Half as ::DoubleVector>::merge(a.rsqrt(), b.rsqrt()) }; out }

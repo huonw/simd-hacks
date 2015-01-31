@@ -2,7 +2,8 @@
 //!
 //! [Source](https://github.com/huonw/simd), [crates.io](https://crates.io/crates/simd)
 
-#![feature(trace_macros, link_llvm_intrinsics, simd_ffi)]
+#![feature(trace_macros, link_llvm_intrinsics, simd_ffi,
+           core)]
 
 extern crate simdty;
 extern crate llvmint;

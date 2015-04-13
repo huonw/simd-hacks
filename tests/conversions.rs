@@ -47,9 +47,9 @@ fn bitcast_slice() {
     let b: &[u16] = a.bitcast();
 
     if cfg!(target_endian = "little") {
-        assert_eq!(b, &[0x02_01, 0x04_03][]);
+        assert_eq!(b, &[0x02_01, 0x04_03]);
     } else {
-        assert_eq!(b, &[0x01_02, 0x03_03][]);
+        assert_eq!(b, &[0x01_02, 0x03_03]);
     }
 }
 
@@ -61,7 +61,7 @@ fn convert_slice() {
     assert_eq!(c.len(), 8 * 2 * 2);
 }
 #[test]
-#[should_fail(expected = "align_of")]
+#[should_panic(expected = "align_of")]
 fn convert_slice_misaligned() {
     let a: &[u64x2] = &[u64x2(1, 2), u64x2(3, 4)];
     let b: &[u8x16] = a.bitcast();
@@ -69,7 +69,7 @@ fn convert_slice_misaligned() {
     let _: &[u8x16] = c[1..17].convert();
 }
 #[test]
-#[should_fail(expected = "size_of")]
+#[should_panic(expected = "size_of")]
 fn convert_slice_missized() {
     let a: &[u64x2] = &[u64x2(1, 2), u64x2(3, 4)];
     let b: &[u8x16] = a.bitcast();
@@ -84,7 +84,7 @@ fn convert_slice_mut() {
     assert_eq!(c.len(), 8 * 2 * 2);
 }
 #[test]
-#[should_fail(expected = "align_of")]
+#[should_panic(expected = "align_of")]
 fn convert_slice_misaligned_mut() {
     let a: &mut [u64x2] = &mut [u64x2(1, 2), u64x2(3, 4)];
     let b: &mut [u8x16] = a.bitcast();
@@ -92,7 +92,7 @@ fn convert_slice_misaligned_mut() {
     let _: &mut [u8x16] = (&mut c[1..17]).convert();
 }
 #[test]
-#[should_fail(expected = "size_of")]
+#[should_panic(expected = "size_of")]
 fn convert_slice_missized_mut() {
     let a: &mut [u64x2] = &mut [u64x2(1, 2), u64x2(3, 4)];
     let b: &mut [u8x16] = a.bitcast();

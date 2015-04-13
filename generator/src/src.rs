@@ -1,7 +1,8 @@
 use ty;
-use std::io::IoResult;
+use std::io;
+use std::io::prelude::*;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Promotion {
     input_doubles: usize,
     output_halves: usize,
@@ -13,17 +14,17 @@ impl Promotion {
 }
 
 
-pub fn impl_header(w: &mut Writer,
+pub fn impl_header(w: &mut Write,
                    trait_: &str, unsafe_: bool,
-                   self_: &ty::Type, param: Option<&ty::Type>) -> IoResult<()> {
+                   self_: &ty::Type, param: Option<&ty::Type>) -> io::Result<()> {
 
     let mut cfgs = vec![];
-    if let Some(ref c) = self_.cfg { cfgs.push(&c[]) }
+    if let Some(ref c) = self_.cfg { cfgs.push(c) }
 
     let params = match param {
         None => String::new(),
         Some(t) => {
-            if let Some(ref c) = t.cfg { cfgs.push(&c[]) }
+            if let Some(ref c) = t.cfg { cfgs.push(&c) }
 
             format!("<{}>", t.name)
         }
@@ -40,16 +41,17 @@ pub fn impl_header(w: &mut Writer,
             self_ = self_.name)
 }
 
-pub fn subdividing(w: &mut Writer, method: &str, out: &str) -> IoResult<()> {
+pub fn subdividing(w: &mut Write, trait_: &str, method: &str, out: &str) -> io::Result<()> {
     write!(w,
            "let (a, b) = ::HalfVector::split(in_); \
-            <<{out} as ::HalfVector>::Half as ::DoubleVector>::merge(a.{method}(), b.{method}())",
-            method = method, out = out)
+            <<{out} as ::HalfVector>::Half as ::DoubleVector>::merge(\
+            {trait_}::{method}(a), {trait_}::{method}(b))",
+            trait_ = trait_, method = method, out = out)
 }
 
-pub fn method<F>(w: &mut Writer, method: &str, out: &ty::Type, promote: Promotion,
-                 body: F) -> IoResult<()>
-    where F: FnOnce(&mut Writer) -> Option<IoResult<()>>
+pub fn method<F>(w: &mut Write, trait_: &str, method: &str, out: &ty::Type, promote: Promotion,
+                 body: F) -> io::Result<()>
+    where F: FnOnce(&mut Write) -> Option<io::Result<()>>
 {
     let mut input = "self".to_string();
     let mut i_left = "";
@@ -67,43 +69,44 @@ pub fn method<F>(w: &mut Writer, method: &str, out: &ty::Type, promote: Promotio
 
     try!(write!(w, "    #[inline(always)] fn {method}(self) -> {out} {{
         let in_ = {i_left}{input}{i_right}; let out = {{",
-             method = method, out = &out.name[],
+             method = method, out = &out.name,
                 input = input, i_left = i_left, i_right = i_right));
     match body(w) {
         Some(r) => try!(r),
         None => {
-            try!(w.write_str(" "));
-            try!(subdividing(w, method, &out.name[]));
-            try!(w.write_str(" "));
+            try!(w.write_all(b" "));
+            try!(subdividing(w, trait_, method, &out.name));
+            try!(w.write_all(b" "));
         }
     }
     writeln!(w, "}}; {output} }}", output = output)
 }
 
-pub fn naive_impl<'a, F>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str, in_: &'a ty::Type,
+pub fn naive_impl<'a, F>(w: &mut Write, trait_: &str, unsafe_: bool, meth: &str, in_: &'a ty::Type,
                          out: Option<&'a ty::Type>,
                          cfgs: &[String],
-                         base_case: F) -> IoResult<()>
-    where F: FnOnce(&mut Writer) -> IoResult<()> {
+                         base_case: F) -> io::Result<()>
+    where F: FnOnce(&mut Write) -> io::Result<()>
+{
     assert!(out.map_or(true, |o| in_.count == o.count));
     let count = in_.count;
     try!(writeln!(w, "#[cfg(not(any({cfg})))]", cfg = cfgs.connect(",")));
     try!(impl_header(w, trait_, unsafe_, in_, out));
-    try!(method(w, meth, out.unwrap_or(in_), Promotion::new(0, 0), move |w| {
+    try!(method(w, trait_, meth, out.unwrap_or(in_), Promotion::new(0, 0), move |w| {
         if count == 1 {
             Some(base_case(w))
         } else {
             None
         }
     }));
-    w.write_str("}\n")
+    w.write_all(b"}\n")
 
 }
 
-pub fn x86_impl<'a>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str,
+pub fn x86_impl<'a>(w: &mut Write, trait_: &str, unsafe_: bool, meth: &str,
                     in_: &'a ty::Type, out: Option<&'a ty::Type>,
                     cfgs: &[String],
-                    instr: &str, promote: Promotion) -> IoResult<String> {
+                    instr: &str, promote: Promotion) -> io::Result<String> {
     let name = &instr[..instr.bytes().position(|b| b == b'_').unwrap()];
     let x86_64 = match name {
         "sse" | "sse2" => "target_arch = \"x86_64\",",
@@ -114,10 +117,10 @@ pub fn x86_impl<'a>(w: &mut Writer, trait_: &str, unsafe_: bool, meth: &str,
     try!(writeln!(w,"#[cfg(all(not(any({previous})), {cfg}))]",
              previous = cfgs.connect(", "), cfg = cfg));
     try!(impl_header(w, trait_, unsafe_, in_, out));
-    try!(method(w, meth, out.unwrap_or(in_), promote, |w| {
+    try!(method(w, trait_, meth, out.unwrap_or(in_), promote, |w| {
         Some(write!(w, "unsafe{{::llvmint::x86::{instr}(in_)}}", instr=instr))
     }));
-    try!(w.write_str("}\n"));
+    try!(w.write_all(b"}\n"));
 
     Ok(cfg)
 }

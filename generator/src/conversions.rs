@@ -1,9 +1,11 @@
-use std::io::{self, File};
+use std::io::prelude::*;
+use std::fs::{self, File};
 use src;
 use ty;
+use std::path::Path;
 
 pub fn convert_impls(tys: &ty::Types, dst: &Path) {
-    io::fs::mkdir_recursive(&dst.join("convert_impls"), io::USER_RWX).unwrap();
+    fs::create_dir_all(&dst.join("convert_impls")).unwrap();
     let mut out = File::create(&dst.join("convert_impls/mod.rs")).unwrap();
 
     writeln!(&mut out, "mod naive;").unwrap();
@@ -53,7 +55,7 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
                     let c = src::x86_impl(&mut x86, "::Convert", true,
                                           "convert",
                                           i, Some(o),
-                                          &cfgs[],
+                                          &cfgs,
                                           instr, promote).unwrap();
                     cfgs.push(c);
                 }
@@ -61,12 +63,12 @@ pub fn convert_impls(tys: &ty::Types, dst: &Path) {
 
             if i.count == o.count {
                 let writer = if i.count == 1 {
-                    &mut out as &mut Writer
+                    &mut out as &mut Write
                 } else {
-                    &mut naive as &mut Writer
+                    &mut naive as &mut Write
                 };
                 src::naive_impl(writer,"::Convert", true,
-                                "convert", i, Some(o), &cfgs[], |w| {
+                                "convert", i, Some(o), &cfgs, |w| {
                     write!(w, "in_ as {out}", out = o.name)
                 }).unwrap()
             }

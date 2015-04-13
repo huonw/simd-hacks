@@ -1,6 +1,7 @@
-#![allow(unstable)]
-use std::io::File;
-use std::os;
+use std::fs::File;
+use std::env;
+use std::io::prelude::*;
+use std::path::Path;
 
 #[macro_use]
 mod macros;
@@ -70,13 +71,14 @@ fn half_double_impls(ty: &ty::Types, dst: &Path) {
 
 
 fn main() {
-    let dst = Path::new(&os::args()[1]);
+    let path = env::args().nth(1).unwrap();
+    let dst = Path::new(&path);
 
     // 64 == 1<<6
     let log_max_count = 6;
     let types = ty::simd_types(log_max_count);
 
-    let mut index = File::create(&dst.join("mod.rs"));
+    let mut index = File::create(&dst.join("mod.rs")).unwrap();
 
     macro_rules! run {
         ($($name: ident),*) => { {

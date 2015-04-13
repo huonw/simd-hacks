@@ -1,10 +1,12 @@
-use std::io::{self, File};
+use std::io::prelude::*;
+use std::fs::{self, File};
+use std::path::Path;
 use ty;
 use src;
 
 pub fn maths_impls(types: &ty::Types, dst: &Path) {
     let dst = dst.join("maths_impls");
-    io::fs::mkdir_recursive(&dst, io::USER_RWX).unwrap();
+    fs::create_dir_all(&dst).unwrap();
     let mut out = File::create(&dst.join("mod.rs")).unwrap();
     macro_rules! run {
         ($($name: ident),*) => { {
@@ -30,20 +32,21 @@ fn sqrt_impls(types: &ty::Types, dst: &Path) {
             // LLVM doesn't seem to handle large types correctly.
             continue
         }
-        src::impl_header(&mut out, "::maths::sqrt::Sqrt", false, ty, None).unwrap();
-        src::method(&mut out, "sqrt", ty, src::Promotion::new(0, 0), |w,| {
+        let trait_ = "::maths::sqrt::Sqrt";
+        src::impl_header(&mut out, trait_, false, ty, None).unwrap();
+        src::method(&mut out, trait_, "sqrt", ty, src::Promotion::new(0, 0), |w,| {
             Some(write!(w, "\n        \
         extern {{ #[link_name = \"llvm.sqrt.{llvm}\"] fn sqrt(x: {ty}) -> {ty}; }}
         unsafe {{sqrt(in_)}}\n    ",
                    llvm = ty.llvm,
                    ty = ty.name))
         }).unwrap();
-        out.write_str("}\n").unwrap();
+        out.write_all(b"}\n").unwrap();
     }
 }
 fn rsqrt_impls(types: &ty::Types, dst: &Path) {
     let dst = dst.join("rsqrt_impls");
-    io::fs::mkdir_recursive(&dst, io::USER_RWX).unwrap();
+    fs::create_dir_all(&dst).unwrap();
     let mut out = File::create(&dst.join("mod.rs")).unwrap();
 
     writeln!(&mut out, "mod naive;").unwrap();
@@ -76,13 +79,13 @@ fn rsqrt_impls(types: &ty::Types, dst: &Path) {
             for &(instr, promote) in choices.iter() {
                 let c = src::x86_impl(&mut x86, "::maths::sqrt::RSqrt", false, "rsqrt",
                                       ty, None,
-                                      &cfgs[],
+                                      &cfgs,
                                       instr, promote).unwrap();
                 cfgs.push(c);
             }
         }
 
-        src::naive_impl(&mut naive, "::maths::sqrt::RSqrt", false, "rsqrt", ty, None, &cfgs[], |w| {
+        src::naive_impl(&mut naive, "::maths::sqrt::RSqrt", false, "rsqrt", ty, None, &cfgs, |w| {
             write!(w, " 1.0 / ::maths::sqrt::Sqrt::sqrt(in_)")
         }).unwrap();
     }

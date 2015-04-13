@@ -6,7 +6,7 @@ pub struct Types {
     pub all: Vec<Type>,
 }
 
-#[derive(Show, Eq, PartialEq, Clone, Hash)]
+#[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub struct Type {
     pub name: String,
     pub llvm: String,

@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["sqrt","Square roots and related functionality."]]});

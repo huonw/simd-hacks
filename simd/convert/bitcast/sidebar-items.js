@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["Bitcast","Types between which a direct bitcast (`transmute`) is safe, e.g. reinterpreting the 4 bytes of a `u32` as an `i32` is fine."]]});

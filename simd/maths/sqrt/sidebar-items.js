@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["RSqrt","Reciprocal-square root operation."],["Sqrt","Square root operation."]]});

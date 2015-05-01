@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `simd` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, simd">
+
+    <title>simd - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'simd', ty: 'mod', relpath: '../'};</script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>simd</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="#" title="collapse all docs">[&minus;]</a>
+        </span><a id='src-0' class='srclink' href='../src/simd/lib.rs.html#1-78' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Functionality for working with SIMD registers and instructions.</p>
+
+<p><a href="https://github.com/huonw/simd">Source</a>, <a href="https://crates.io/crates/simd">crates.io</a></p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='mod' href='maths/index.html'
+                               title='simd::maths'>maths</a></td>
+                        <td class='docblock short'>
+                             <p>Mathematical operations.</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.Tails.html'
+                               title='simd::Tails'>Tails</a></td>
+                        <td class='docblock short'>
+                             <p>A type that repesents a <code>&amp;[U]</code> converted from a <code>&amp;[T]</code>, where the
+conversion may be forced to leave leading/trailing elements (due
+to alignment/size mismatches).</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.TailsMut.html'
+                               title='simd::TailsMut'>TailsMut</a></td>
+                        <td class='docblock short'>
+                             <p>A type that repesents a <code>&amp;mut [U]</code> converted from a <code>&amp;mut [T]</code>,
+where the conversion may be forced to leave leading/trailing
+elements (due to alignment/size mismatches).</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.Bitcast.html'
+                               title='simd::Bitcast'>Bitcast</a></td>
+                        <td class='docblock short'>
+                             <p>Types between which a direct bitcast (<code>transmute</code>) is safe,
+e.g. reinterpreting the 4 bytes of a <code>u32</code> as an <code>i32</code> is fine.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.Convert.html'
+                               title='simd::Convert'>Convert</a></td>
+                        <td class='docblock short'>
+                             
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.DoubleVector.html'
+                               title='simd::DoubleVector'>DoubleVector</a></td>
+                        <td class='docblock short'>
+                             <p>SIMD vectors which can be merged with another of the same type to
+create one of double the length with the same elements.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.HalfVector.html'
+                               title='simd::HalfVector'>HalfVector</a></td>
+                        <td class='docblock short'>
+                             <p>SIMD vectors which can be separated into two SIMD vectors of half
+the size with the same elements.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.Vector.html'
+                               title='simd::Vector'>Vector</a></td>
+                        <td class='docblock short'>
+                             <p>A SIMD vector, storing precisely <code>count()</code> elements of (primitive)
+type <code>Item</code> sequentially in memory.</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.rsqrt.html'
+                               title='simd::rsqrt'>rsqrt</a></td>
+                        <td class='docblock short'>
+                             <p>Return a platform-specific approximation to the reciprocal-square
+root of <code>x</code>.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.sqrt.html'
+                               title='simd::sqrt'>sqrt</a></td>
+                        <td class='docblock short'>
+                             <p>Return a platform-specific approximation to the square root of
+<code>x</code>.</p>
+
+                        </td>
+                    </tr>
+                </table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "simd";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>

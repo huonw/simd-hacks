@@ -18,6 +18,8 @@ Functionality for working with SIMD registers and instructions.
 
 default = ["shims"]
 
+unstable = []
+
 # avoid shimming in replacements if there's no direct instruction
 shims = []
 

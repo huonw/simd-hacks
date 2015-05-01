@@ -1,10 +1,18 @@
+sudo: required
 language: rust
-sudo: false
-
+rust:
+  - nightly
+before_script:
+  - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
 script:
-  - cargo build --verbose && cargo test --verbose && cargo doc --verbose
+  - |
+      travis-cargo build &&
+      travis-cargo test &&
+      travis-cargo bench &&
+      travis-cargo doc
 after_success:
-  - test "$TRAVIS_PULL_REQUEST" == false && test "$TRAVIS_BRANCH" == "master" && bash deploy-docs.sh
+  - travis-cargo doc-upload
+  - travis-cargo coveralls
 env:
   global:
     secure: DGTtHe0QLG+WuuBqdIev9Pe2xbWHsKJd1mWIG/6tYoKAzReYaUCFrLn7UpbWI9VFoOYVzn/0WdgMUu0eDuZKz1DieqllaGDHkoOQe5w7pc4ro65kicRRYew8GAJeDS1QqEiz2dDyhF8ZRnigaKb+l7nqmMdMpUJF3xmXB7GK2+s=

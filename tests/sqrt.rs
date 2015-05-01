@@ -1,8 +1,6 @@
 extern crate simd;
 extern crate simdty;
 
-use std::num::Float;
-
 use simdty::*;
 
 // these are so small/are a perfect squares that one would hope that
